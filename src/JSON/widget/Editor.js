@@ -19,6 +19,7 @@ export default defineWidget('Editor', false, {
     // Set in Modeler
     schemaStringAttr: '',
     editable: true,
+    height: 400,
 
     _obj: null,
     _editor: null,
@@ -31,7 +32,7 @@ export default defineWidget('Editor', false, {
     postCreate() {
         this.log('.postCreate', this._WIDGET_VERSION);
 
-        domStyle.set(this.domNode, 'height', '400px');
+        domStyle.set(this.domNode, 'height', `${this.height}px`);
     },
 
     update(obj, cb) {

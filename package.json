@@ -1,7 +1,7 @@
 {
   "name": "mendix-json",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Do JSON thingies in Mendix",
   "scripts": {
     "webpack": "./node_modules/.bin/webpack",

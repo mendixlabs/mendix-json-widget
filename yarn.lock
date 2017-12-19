@@ -6674,9 +6674,9 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2"
 
-widget-base-helpers@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/widget-base-helpers/-/widget-base-helpers-1.0.4.tgz#6163f6dc9fcee05975c4893a176b8b9ed9e07971"
+widget-base-helpers@^1.0.14:
+  version "1.0.14"
+  resolved "https://registry.yarnpkg.com/widget-base-helpers/-/widget-base-helpers-1.0.14.tgz#38f87da01819cbdb9c2ad5098826ba26ddc87401"
 
 window-size@0.1.0:
   version "0.1.0"

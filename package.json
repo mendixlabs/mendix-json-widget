@@ -1,7 +1,7 @@
 {
   "name": "mendix-json",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Do JSON thingies in Mendix",
   "scripts": {
     "webpack": "./node_modules/.bin/webpack",
@@ -70,6 +70,6 @@
   },
   "dependencies": {
     "jsoneditor": "^5.10.1",
-    "widget-base-helpers": "^1.0.4"
+    "widget-base-helpers": "^1.0.14"
   }
 }

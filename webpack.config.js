@@ -106,7 +106,10 @@ const webpackConfig = {
         loaders: [
             {
                 test: /\.jsx?$/,
-                exclude: /node_modules/,
+                include: [
+                    path.resolve(__dirname, 'src'),
+                    path.resolve('node_modules', 'widget-base-helpers')
+                ],
                 loader: [
                     'babel-loader',
                     'eslint-loader'

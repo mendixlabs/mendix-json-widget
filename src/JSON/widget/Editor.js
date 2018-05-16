@@ -1,4 +1,4 @@
-import { defineWidget, log, runCallback, fetchAttr } from 'widget-base-helpers';
+import { defineWidget, log, runCallback, fetchAttr, executePromise } from 'widget-base-helpers';
 
 import domStyle from 'dojo/dom-style';
 import debounce from 'dojo/debounce';
@@ -18,8 +18,11 @@ export default defineWidget('Editor', false, {
 
     // Set in Modeler
     schemaStringAttr: '',
+    onChangeMf: '',
     editable: true,
     height: 400,
+    showNavigationBar: true,
+    showStatusBar: true,
 
     _obj: null,
     _editor: null,
@@ -30,9 +33,15 @@ export default defineWidget('Editor', false, {
     },
 
     postCreate() {
-        this.log('.postCreate', this._WIDGET_VERSION);
+        this.log('postCreate', this._WIDGET_VERSION);
 
         domStyle.set(this.domNode, 'height', `${this.height}px`);
+
+        this.addOnDestroy(() => {
+            this.log('destroy');
+
+            null !== this._editor && this._editor.destroy();
+        });
     },
 
     update(obj, cb) {
@@ -43,43 +52,56 @@ export default defineWidget('Editor', false, {
         this._updateRendering(cb);
     },
 
-    _updateRendering(cb) {
+    _createEditor() {
+        this.log('_createEditor');
+
+        const views = this._isEditable() ?
+            ['tree', 'view', 'form', 'code', 'text'] :
+            ['view'];
+
+        this._editor = new jsonEditor(this.domNode, {
+            modes: views,
+            onChange: debounce(this._onChange.bind(this), 250),
+            onError: this._onError.bind(this),
+            navigationBar: this.showNavigationBar,
+            statusBar: this.showStatusBar,
+        });
+    },
+
+    async _updateRendering(cb) {
+        this.log('_updateRendering');
         if (this._obj) {
-            this._getJSON(this._obj, this.jsonStringAttr)
-                .then(json => {
-                    if (null !== json) {
-                        if (null === this._editor) {
-                            const views = this._isEditable() ?
-                                ['tree', 'view', 'form', 'code', 'text'] :
-                                ['view'];
-                            this._editor = new jsonEditor(this.domNode, {
-                                modes: views,
-                                onChange: debounce(this._onChange.bind(this), 250),
-                            });
-                        }
+            try {
+                const json = await this._getJSON(this._obj, this.jsonStringAttr);
 
-                        this._editor.set(json);
-
-                        if ('' !== this.schemaStringAttr) {
-                            this._getJSON(this._obj, this.schemaStringAttr)
-                                .then(schema => {
-                                    this._editor.setSchema(schema);
-                                }, () => {
-                                    //mx.ui.error(err.toString());
-                                });
-                        }
+                if (null !== json) {
+                    if (null === this._editor) {
+                        this._createEditor();
                     }
-                    this.runCallback(cb, '_updateRendering');
-                }, err => {
-                    mx.ui.error(err.toString());
-                    this.runCallback(cb, '_updateRendering');
-                });
+
+                    this._editor.set(json);
+
+                    // if ('' !== this.schemaStringAttr) {
+                    //     this._getJSON(this._obj, this.schemaStringAttr)
+                    //         .then(schema => {
+                    //             this._editor.setSchema(schema);
+                    //         }, () => {
+                    //             //mx.ui.error(err.toString());
+                    //         });
+                    // }
+                }
+                this.runCallback(cb, '_updateRendering');
+            } catch (e) {
+                console.error(this.id, e);
+                this.runCallback(cb, '_updateRendering');
+            }
         } else {
             this.runCallback(cb, '_updateRendering');
         }
     },
 
     _isEditable() {
+        this.log('_isEditable');
         return this._obj && !(this.readOnly ||
             this.readonly ||
             this.get("disabled") ||
@@ -87,30 +109,41 @@ export default defineWidget('Editor', false, {
             this.editable;
     },
 
-    _getJSON(obj, attr){
+    async _getJSON(obj, attr){
+        this.log('_getJSON');
         const deferred = new Deferred();
 
-        fetchAttr(obj, attr)
-            .then(str => {
-                let json;
-                try {
-                    json = JSON.parse(str);
-                } catch (err) {
-                    deferred.reject(err);
-                    return;
-                }
-
-                deferred.resolve(json);
-            }, deferred.reject);
+        try {
+            const str = await fetchAttr(obj, attr);
+            const json = '' !== str ? JSON.parse(str) : null;
+            deferred.resolve(json);
+        } catch (e) {
+            deferred.reject(e);
+        }
 
         return deferred;
     },
 
     _onChange() {
+        this.log('_onChange');
         const text = this._editor.getText();
         if (this._obj) {
-            this._obj.set(this.jsonStringAttr, text);
+            try {
+                JSON.parse(text);
+                this._obj.set(this.jsonStringAttr, text);
+
+                if ('' !== this.onChangeMf) {
+                    executePromise.call(this, this.onChangeMf, this._obj.getGuid());
+                }
+            } catch (e) {
+                console.warn(this.id + '._onChange, not set:', e);
+            }
         }
+    },
+
+    _onError(err) {
+        this.log('_onError');
+        mx.ui.exception(err);
     },
 
 });

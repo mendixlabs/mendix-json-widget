@@ -71,25 +71,21 @@ export default defineWidget('Editor', false, {
     async _updateRendering(cb) {
         this.log('_updateRendering');
         if (this._obj) {
+            let json = {};
+
             try {
-                const json = await this._getJSON(this._obj, this.jsonStringAttr);
+                json = await this._getJSON(this._obj, this.jsonStringAttr);
+            } catch (e) {
+                console.error(this.id, e);
+                json = null;
+            }
 
-                if (null !== json) {
-                    if (null === this._editor) {
-                        this._createEditor();
-                    }
-
-                    this._editor.set(json);
-
-                    // if ('' !== this.schemaStringAttr) {
-                    //     this._getJSON(this._obj, this.schemaStringAttr)
-                    //         .then(schema => {
-                    //             this._editor.setSchema(schema);
-                    //         }, () => {
-                    //             //mx.ui.error(err.toString());
-                    //         });
-                    // }
+            try {
+                if (null === this._editor) {
+                    this._createEditor();
                 }
+
+                this._editor.set(json);
                 this.runCallback(cb, '_updateRendering');
             } catch (e) {
                 console.error(this.id, e);

@@ -18,6 +18,7 @@ export default defineWidget('Editor', false, {
 
     // Set in Modeler
     schemaStringAttr: '',
+    jsonStringAttr: '',
     onChangeMf: '',
     editable: true,
     height: 400,
@@ -49,6 +50,7 @@ export default defineWidget('Editor', false, {
 
         this._obj = obj;
 
+        this._resetSubscriptions();
         this._updateRendering(cb);
     },
 
@@ -140,6 +142,28 @@ export default defineWidget('Editor', false, {
     _onError(err) {
         this.log('_onError');
         mx.ui.exception(err);
+    },
+
+    _resetSubscriptions() {
+        this.log('_resetSubscriptions');
+
+        this.unsubscribeAll();
+
+        if (this._obj) {
+            this.subscribe({
+                guid: this._obj.getGuid(),
+                callback: this._updateRendering.bind(this),
+            });
+
+            // if (this.jsonStringAttr) {
+            //     this.subscribe({
+            //         guid: this._obj.getGuid(),
+            //         attr: this.jsonStringAttr,
+            //         callback: this._updateRendering.bind(this),
+            //     });
+            // }
+        }
+
     },
 
 });

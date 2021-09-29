@@ -70,7 +70,7 @@
     "xml-webpack-plugin": "^0.0.2"
   },
   "dependencies": {
-    "jsoneditor": "^8.1.2",
+    "jsoneditor": "^9.5.6",
     "widget-base-helpers": "^1.0.17"
   }
 }
